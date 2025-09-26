@@ -1,56 +1,65 @@
+// src/screens/GameScreen.jsx
+
 import React, { useState } from "react";
-import ScenarioCard from "./ScenarioCard";
-import ScoreTracker from "./ScoreTracker";
-import EndScreen from "./EndScreen";
-import StartScreen from "./StartScreen";
 import scenarios from "../data/scenarios";
 
 const GameScreen = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [score, setScore] = useState(50); 
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [currentId, setCurrentId] = useState(1);
+  const [health, setHealth] = useState(100);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState("");
+
+  const currentScenario = scenarios.find((s) => s.id === currentId);
 
   const handleChoice = (choice) => {
-    const newScore = score + choice.effect;
-    setScore(newScore);
+    setHealth((prev) => Math.max(0, prev + choice.health));
+    setScore((prev) => prev + choice.score);
+    setFeedback(choice.feedback);
 
-    if (currentIndex < scenarios.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      setIsGameOver(true);
+    if (choice.nextId) {
+      setTimeout(() => {
+        setCurrentId(choice.nextId);
+        setFeedback("");
+      }, 1200); // short delay to show feedback
     }
   };
 
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setScore(50);
-    setIsGameOver(false);
-    setIsGameStarted(false);
-  };
-
-  const handleStart = () => {
-    setIsGameStarted(true);
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-teal-100 to-white p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Harm Reduction Quest
-      </h1>
+    <div className="p-6 text-center">
+      <h2 className="text-2xl font-bold mb-4">Harm Reduction Quest</h2>
 
-      {!isGameStarted ? (
-        <StartScreen onStart={handleStart} />
-      ) : !isGameOver ? (
+      <div className="mb-4">
+        <p>❤️ Health: {health}</p>
+        <p>⭐ Score: {score}</p>
+      </div>
+
+      {currentScenario ? (
         <>
-          <ScenarioCard
-            scenario={scenarios[currentIndex]}
-            onChoiceSelect={handleChoice}
-          />
-          <ScoreTracker score={score} />
+          <p className="mb-6 text-lg">{currentScenario.text}</p>
+          <div className="space-y-2">
+            {currentScenario.choices.length > 0 ? (
+              currentScenario.choices.map((choice, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleChoice(choice)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-800 w-full"
+                >
+                  {choice.text}
+                </button>
+              ))
+            ) : (
+              <p className="text-green-600 font-semibold">
+                🎉 You finished the demo!
+              </p>
+            )}
+          </div>
         </>
       ) : (
-        <EndScreen score={score} onRestart={handleRestart} />
+        <p>Game Over</p>
+      )}
+
+      {feedback && (
+        <div className="mt-4 text-yellow-600 font-medium">{feedback}</div>
       )}
     </div>
   );
