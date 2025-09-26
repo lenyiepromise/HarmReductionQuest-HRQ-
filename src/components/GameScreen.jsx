@@ -1,76 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import ScenarioCard from "./ScenarioCard";
+import ScoreTracker from "./ScoreTracker";
+import scenarios from "../data/scenarios";
 
-const GameScreen = ({ questions, onComplete, updateScore }) => {
+const GameScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(50); // Start neutral at 50
 
-  const currentQuestion = questions[currentIndex];
+  const handleChoice = (choice) => {
+    setScore((prev) => prev + choice.effect);
 
-  // Handle option selection
-  const handleOptionClick = (index) => {
-    setSelectedOption(index);
-    const isCorrect = index === currentQuestion.answer;
-    const points = isCorrect ? currentQuestion.points : 0;
-    setScore((prev) => prev + points);
-    updateScore(points);
-
-    // Automatically move to next question after delay
-    setTimeout(() => {
-      if (currentIndex + 1 < questions.length) {
-        setCurrentIndex((prev) => prev + 1);
-        setSelectedOption(null);
-      } else {
-        onComplete(score + points);
-      }
-    }, 1200);
+    if (currentIndex < scenarios.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      alert(`🎉 Game Over! Your final score: ${score + choice.effect}`);
+    }
   };
 
-  // Calculate progress percentage
-  const progress = ((currentIndex + 1) / questions.length) * 100;
-
   return (
-    <div className="w-full max-w-3xl mx-auto p-4">
-      {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-        <div
-          className="bg-indigo-500 h-3 rounded-full transition-all duration-500 ease-in-out"
-          style={{ width: `${progress}%` }}
-        ></div>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-teal-100 to-white p-6">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        Harm Reduction Quest
+      </h1>
 
-      {/* Question */}
-      <div className="bg-indigo-100 p-6 rounded-2xl mb-6 shadow-md">
-        <p className="text-xl font-semibold text-indigo-800">
-          {currentQuestion.text}
-        </p>
-      </div>
+      <ScenarioCard
+        scenario={scenarios[currentIndex]}
+        onChoiceSelect={handleChoice}
+      />
 
-      {/* Options */}
-      <div className="flex flex-col space-y-4">
-        {currentQuestion.options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => handleOptionClick(index)}
-            className={`w-full px-6 py-4 rounded-full text-left font-semibold shadow-md transition-all
-              ${
-                selectedOption === index
-                  ? index === currentQuestion.answer
-                    ? "bg-green-500 text-white"
-                    : "bg-red-500 text-white"
-                  : "bg-white text-gray-800 hover:bg-indigo-100"
-              }`}
-            disabled={selectedOption !== null}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-
-      {/* Score */}
-      <div className="mt-6 text-gray-600 font-semibold">
-        Score: {score}
-      </div>
+      {/* Visual Score Tracker */}
+      <ScoreTracker score={score} />
     </div>
   );
 };

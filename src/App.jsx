@@ -1,32 +1,90 @@
-import React, { useState } from 'react';
-import StartScreen from './components/StartScreen';
-import GameScreen from './components/GameScreen';
-import MiniGameScreen from './components/MiniGameScreen';
-import ResultsScreen from './components/ResultsScreen';
-import MessageBox from './components/MessageBox';
-import ReferralModal from './components/ReferralModal';
+import React, { useState } from "react";
+import StartScreen from "./screens/StartScreen";
+import GameScreen from "./screens/GameScreen";
+import MiniGameScreen from "./screens/MiniGameScreen";
+import ResultsScreen from "./screens/ResultsScreen";
+
+// Sample quiz questions
+const quizQuestions = [
+  {
+    text: "What is harm reduction?",
+    options: [
+      "Avoiding all risky behavior",
+      "Minimizing negative consequences of risky behavior",
+      "Encouraging risky behavior",
+      "Punishing risky behavior",
+    ],
+    answer: 1,
+    points: 10,
+  },
+  {
+    text: "Which of these is a harm reduction strategy?",
+    options: ["Needle exchange programs", "Prohibition", "Ignoring addiction", "Punishment"],
+    answer: 0,
+    points: 10,
+  },
+  {
+    text: "Why is education important in harm reduction?",
+    options: [
+      "It prevents all risky behavior",
+      "It raises awareness and promotes safer practices",
+      "It discourages discussions about risks",
+      "It punishes risky behavior",
+    ],
+    answer: 1,
+    points: 10,
+  },
+];
 
 function App() {
-  const [screen, setScreen] = useState('start'); // 'start', 'game', 'mini-game', 'results'
-  const [message, setMessage] = useState('');
-  const [showMessage, setShowMessage] = useState(false);
+  const [stage, setStage] = useState("start");
+  const [totalScore, setTotalScore] = useState(0);
 
-  const showMessageBox = (msg) => {
-    setMessage(msg);
-    setShowMessage(true);
+  const updateScore = (points) => {
+    setTotalScore((prev) => prev + points);
   };
 
-  const hideMessageBox = () => setShowMessage(false);
+  const handleQuizComplete = () => {
+    setStage("miniGame");
+  };
+
+  const handleMiniGameComplete = () => {
+    setStage("results");
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      {screen === 'start' && <StartScreen startGame={() => setScreen('game')} />}
-      {screen === 'game' && <GameScreen showMessageBox={showMessageBox} />}
-      {screen === 'mini-game' && <MiniGameScreen />}
-      {screen === 'results' && <ResultsScreen />}
-      
-      {showMessage && <MessageBox message={message} hideMessageBox={hideMessageBox} />}
-      <ReferralModal />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      {stage === "start" && (
+        <StartScreen
+          onStart={() => setStage("game")}
+        />
+      )}
+
+      {stage === "game" && (
+        <GameScreen
+          questions={quizQuestions}
+          onComplete={handleQuizComplete}
+          updateScore={updateScore}
+        />
+      )}
+
+      {stage === "miniGame" && (
+        <MiniGameScreen
+          onComplete={handleMiniGameComplete}
+          updateScore={updateScore}
+        />
+      )}
+
+      {stage === "results" && (
+        <ResultsScreen
+          score={totalScore}
+          total={quizQuestions.length * 10 + 40} // quiz max + mini-game max
+          onRestart={() => {
+            setStage("start");
+            setTotalScore(0);
+          }}
+        />
+      )}
     </div>
   );
 }
