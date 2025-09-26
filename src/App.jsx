@@ -1,21 +1,34 @@
-import React from "react";
-import { GameProvider, useGame } from "./context/GameContext";
-import StartScreen from "./components/StartScreen";
+import React, { useState } from 'react';
+import StartScreen from './components/StartScreen';
+import GameScreen from './components/GameScreen';
+import MiniGameScreen from './components/MiniGameScreen';
+import ResultsScreen from './components/ResultsScreen';
+import MessageBox from './components/MessageBox';
+import ReferralModal from './components/ReferralModal';
 
-function GameRouter() {
-  const { state } = useGame();
+function App() {
+  const [screen, setScreen] = useState('start'); // 'start', 'game', 'mini-game', 'results'
+  const [message, setMessage] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
 
-  if (state.stage === "start") return <StartScreen />;
-  if (state.stage === "quiz") return <div>Quiz coming soon...</div>;
-  if (state.stage === "results") return <div>Results coming soon...</div>;
+  const showMessageBox = (msg) => {
+    setMessage(msg);
+    setShowMessage(true);
+  };
 
-  return <div>Unknown stage</div>;
-}
+  const hideMessageBox = () => setShowMessage(false);
 
-export default function App() {
   return (
-    <GameProvider>
-      <GameRouter />
-    </GameProvider>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      {screen === 'start' && <StartScreen startGame={() => setScreen('game')} />}
+      {screen === 'game' && <GameScreen showMessageBox={showMessageBox} />}
+      {screen === 'mini-game' && <MiniGameScreen />}
+      {screen === 'results' && <ResultsScreen />}
+      
+      {showMessage && <MessageBox message={message} hideMessageBox={hideMessageBox} />}
+      <ReferralModal />
+    </div>
   );
 }
+
+export default App;
